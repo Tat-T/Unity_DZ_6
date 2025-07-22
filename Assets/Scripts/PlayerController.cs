@@ -11,9 +11,15 @@ public class PlayerController : MonoBehaviour
     private Vector3 playerVelocity;
     private bool isGrounded;
 
-    //----
+    //--Двойной прыжок--
     public int maxJumpCount = 2; // для двойного — 2, для тройного — 3
     private int currentJumpCount = 0;
+
+    //-- Скольжение по определённым платформам --
+
+    private bool isOnSlope = false;
+    public float slideSpeed = 5f;
+
 
     InputAction moveAction;
     InputAction jumpAction;
@@ -25,8 +31,23 @@ public class PlayerController : MonoBehaviour
         jumpAction = InputSystem.actions.FindAction("Jump");
     }
     // Update is called once per frame
+    RaycastHit hit;
+    void CheckSlope()
+    {
+        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, Vector3.down);
+        if (Physics.Raycast(ray, out hit, 1.5f))
+        {
+            isOnSlope = hit.collider.CompareTag("Slope");
+        }
+        else
+        {
+            isOnSlope = false;
+        }
+    }
+
     void Update()
     {
+        CheckSlope();
         // Проверка, стоит ли персонаж на земле
         isGrounded = controller.isGrounded;
         if (isGrounded && playerVelocity.y < 0)
@@ -62,10 +83,13 @@ public class PlayerController : MonoBehaviour
             currentJumpCount++;
         }
 
-
-
         playerVelocity.y += gravity * Time.deltaTime;
-        controller.Move((move * speed + playerVelocity.y * Vector3.up) * Time.deltaTime);
+        if (isOnSlope && isGrounded)
+        {
+            Vector3 slideDirection = new Vector3(hit.normal.x, -Mathf.Abs(hit.normal.y), hit.normal.z);
+            playerVelocity += slideDirection.normalized * slideSpeed * Time.deltaTime;
+        }
 
+        controller.Move((move * speed + playerVelocity.y * Vector3.up) * Time.deltaTime);
     }
 }

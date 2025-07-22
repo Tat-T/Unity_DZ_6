@@ -2,14 +2,19 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target;
-    public float smoothSpeed = 0.125f;
-    public Vector3 offset;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+   public Transform target;         // Игрок
+    public Vector3 offset = new Vector3(0f, 5f, -10f); // Смещение камеры от игрока
+    public float smoothSpeed = 0.125f; // Скорость сглаживания
+
     void LateUpdate()
     {
+        if (!target) return;
+
         Vector3 desiredPosition = target.position + offset;
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
+        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
+
+        transform.position = smoothedPosition;
+
         transform.LookAt(target);
     }
 }
